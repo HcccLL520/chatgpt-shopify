@@ -1,39 +1,43 @@
-const express = require("express");
-const cors = require("cors");
-const { Configuration, OpenAIApi } = require("openai");
-require("dotenv").config();
-
+const express = require('express');
+const axios = require('axios');
 const app = express();
-const port = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
+// 用于解析请求体中的 JSON 数据
 app.use(express.json());
 
-// OpenAI API 配置
-const configuration = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
+// 从环境变量中获取 OpenAI API 密钥
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;  // 从环境变量中读取密钥
 
-// 路由：处理用户输入
-app.post("/chat", async (req, res) => {
-    const { message } = req.body;
+// 与 ChatGPT 进行交互的路由
+app.post('/ask', async (req, res) => {
+    const userMessage = req.body.message;
 
     try {
-        const response = await openai.createChatCompletion({
-            model: "gpt-3.5-turbo", // 或 "gpt-4" 如果你有权限
-            messages: [{ role: "user", content: message }],
-        });
+        const response = await axios.post(
+            'https://api.openai.com/v1/completions',
+            {
+                model: 'text-davinci-003',  // 你可以根据需要选择其他模型
+                prompt: userMessage,
+                max_tokens: 150,
+            },
+            {
+                headers: {
+                    'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                    'Content-Type': 'application/json',
+                }
+            }
+        );
 
-        const reply = response.data.choices[0].message.content;
-        res.json({ reply });
+        // 返回 OpenAI 的回答
+        res.json({ answer: response.data.choices[0].text.trim() });
     } catch (error) {
         console.error(error);
-        res.status(500).send("出错了，请稍后再试！");
+        res.status(500).json({ error: 'Error communicating with OpenAI' });
     }
 });
 
+// 启动服务器
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+    console.log(`Server running on port ${port}`);
 });
