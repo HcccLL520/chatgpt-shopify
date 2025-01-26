@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "routes": [
+    {
+      "src": "/chat",
+      "methods": ["POST"],
+      "dest": "/index.js"
+    }
+  ]
+}
