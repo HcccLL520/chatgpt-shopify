@@ -9,7 +9,7 @@ app.use(express.json());
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;  // 从环境变量中读取密钥
 
 // 与 ChatGPT 进行交互的路由
-app.post('/ask', async (req, res) => {
+app.post("/chat", async (req, res) => {
     const userMessage = req.body.message;
 
     try {
